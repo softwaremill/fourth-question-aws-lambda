@@ -4,9 +4,12 @@ import com.amazonaws.auth.EnvironmentVariableCredentialsProvider;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
+import com.amazonaws.services.dynamodbv2.model.AttributeAction;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import com.amazonaws.services.dynamodbv2.model.AttributeValueUpdate;
 import com.amazonaws.services.dynamodbv2.model.ScanRequest;
 import com.amazonaws.services.dynamodbv2.model.ScanResult;
+import com.amazonaws.services.dynamodbv2.model.UpdateItemRequest;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.LambdaLogger;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
@@ -41,6 +44,15 @@ public class GetFourthQuestionLambda implements RequestHandler<FourthQuestionJso
         Map<String, AttributeValue> resultRow = List.ofAll(result.getItems()).sortBy(i ->
             Long.valueOf(i.get("timestamp").getS())
         ).head();
+
+        dynamoDb.updateItem(new UpdateItemRequest(
+            "FourthQuestionsTable",
+            HashMap.of("id", resultRow.get("id")).toJavaMap(),
+            HashMap.of("asked", new AttributeValueUpdate(
+                new AttributeValue(Boolean.TRUE.toString()), AttributeAction.PUT)).toJavaMap()
+            )
+        );
+
         return new FourthQuestionResponse(
             resultRow.get("question").getS() + ", zadane przez " + resultRow.get("author").getS()
         );
