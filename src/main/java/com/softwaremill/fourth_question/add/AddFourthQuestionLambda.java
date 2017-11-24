@@ -7,19 +7,14 @@ import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.ConditionalCheckFailedException;
 import com.amazonaws.services.dynamodbv2.model.PutItemRequest;
-import com.amazonaws.services.dynamodbv2.model.QueryRequest;
-import com.amazonaws.services.dynamodbv2.model.QueryResult;
 import com.amazonaws.services.dynamodbv2.model.ScanRequest;
 import com.amazonaws.services.dynamodbv2.model.ScanResult;
-import com.amazonaws.services.dynamodbv2.model.Select;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.LambdaLogger;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import io.vavr.collection.HashMap;
-import io.vavr.collection.List;
 
 import java.util.UUID;
-
 
 public class AddFourthQuestionLambda implements RequestHandler<FourthQuestionJson, FourthQuestionResponse> {
 
@@ -30,10 +25,11 @@ public class AddFourthQuestionLambda implements RequestHandler<FourthQuestionJso
         logger = context.getLogger();
         logger.log("Trying to persist " + request);
         initDynamoDbClient();
-        logger.log("After DB init");
         persistData(request);
 
-        return new FourthQuestionResponse(String.valueOf(calculateQueueSize()));
+        FourthQuestionResponse response = new FourthQuestionResponse(String.valueOf(calculateQueueSize()));
+        logger.log("Going to return " + response);
+        return response;
     }
 
     private long calculateQueueSize() {
@@ -45,8 +41,6 @@ public class AddFourthQuestionLambda implements RequestHandler<FourthQuestionJso
                 )
                 .withProjectionExpression("id")
         );
-        logger.log("result = " + result);
-
         return result.getItems().size();
     }
 
