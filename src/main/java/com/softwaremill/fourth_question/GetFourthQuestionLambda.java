@@ -1,4 +1,4 @@
-package com.softwaremill.fourth_question.get;
+package com.softwaremill.fourth_question;
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.model.AttributeAction;
@@ -10,9 +10,6 @@ import com.amazonaws.services.dynamodbv2.model.UpdateItemRequest;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.LambdaLogger;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
-import com.softwaremill.fourth_question.BaseLambdaHandler;
-import com.softwaremill.fourth_question.add.FourthQuestionJson;
-import com.softwaremill.fourth_question.add.FourthQuestionResponse;
 import io.vavr.collection.HashMap;
 import io.vavr.collection.List;
 

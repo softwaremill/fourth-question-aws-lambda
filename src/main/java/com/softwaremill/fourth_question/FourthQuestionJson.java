@@ -1,4 +1,4 @@
-package com.softwaremill.fourth_question.add;
+package com.softwaremill.fourth_question;
 
 
 import lombok.AllArgsConstructor;
