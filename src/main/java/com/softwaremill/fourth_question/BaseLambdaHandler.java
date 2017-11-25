@@ -3,13 +3,14 @@ package com.softwaremill.fourth_question;
 import com.amazonaws.auth.EnvironmentVariableCredentialsProvider;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
+import com.softwaremill.fourth_question.logic.QuestionRepository;
 
 abstract class BaseLambdaHandler {
 
-    FourthQuestionRepository repository;
+    QuestionRepository repository;
 
-    FourthQuestionRepository initializeDatabaseRepository() {
-        repository = new FourthQuestionRepository(
+    QuestionRepository initializeDatabaseRepository() {
+        repository = new QuestionRepository(
             AmazonDynamoDBClientBuilder
                 .standard()
                 .withRegion(Regions.EU_CENTRAL_1)

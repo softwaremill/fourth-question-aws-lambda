@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class FourthQuestionRequestData {
+public class QuestionRequestData {
 
     private String question;
     private String author;

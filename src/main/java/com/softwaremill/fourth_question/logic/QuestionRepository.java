@@ -1,4 +1,4 @@
-package com.softwaremill.fourth_question;
+package com.softwaremill.fourth_question.logic;
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.model.AttributeAction;
@@ -17,18 +17,14 @@ import lombok.Value;
 import java.util.Map;
 import java.util.UUID;
 
-import static io.vavr.API.$;
-import static io.vavr.API.Case;
-import static io.vavr.API.Match;
-
 @Value
-class FourthQuestionRepository {
+public class QuestionRepository {
 
     private static final String TABLE_NAME = "FourthQuestionsTable";
 
     private final AmazonDynamoDB dynamoDb;
 
-    void persist(Question question) throws ConditionalCheckFailedException {
+    public void save(Question question) throws ConditionalCheckFailedException {
         this.dynamoDb
             .putItem(new PutItemRequest(TABLE_NAME,
                 HashMap.of(
@@ -41,7 +37,7 @@ class FourthQuestionRepository {
             ));
     }
 
-    Option<Question> getOldestUnaskedQuestion() {
+    public Option<Question> getOldestUnaskedQuestion() {
         ScanResult result = dynamoDb.scan(
             new ScanRequest(TABLE_NAME)
                 .withFilterExpression("asked = :asked")
@@ -67,7 +63,7 @@ class FourthQuestionRepository {
         }
     }
 
-    void markAsAsked(Question question) {
+    public void markAsAsked(Question question) {
         dynamoDb.updateItem(new UpdateItemRequest(
                 TABLE_NAME,
                 HashMap.of("id", new AttributeValue(question.getId())).toJavaMap(),
@@ -77,7 +73,7 @@ class FourthQuestionRepository {
         );
     }
 
-    long countNumberOfUnaskedQuestions() {
+    public long countNumberOfUnaskedQuestions() {
         ScanResult result = dynamoDb.scan(
             new ScanRequest(TABLE_NAME)
                 .withFilterExpression("asked = :asked")
@@ -88,4 +84,5 @@ class FourthQuestionRepository {
         );
         return result.getItems().size();
     }
+
 }
