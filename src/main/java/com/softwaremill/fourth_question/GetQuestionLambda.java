@@ -6,7 +6,7 @@ import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.softwaremill.fourth_question.logic.Question;
 import io.vavr.control.Option;
 
-public class FourthQuestionLambda extends BaseLambdaHandler
+public class GetQuestionLambda extends BaseLambdaHandler
     implements RequestHandler<QuestionRequestData, QuestionResponse> {
 
     private LambdaLogger logger;
