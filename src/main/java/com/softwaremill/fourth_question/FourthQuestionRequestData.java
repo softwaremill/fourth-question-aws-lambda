@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class FourthQuestionJson {
+public class FourthQuestionRequestData {
 
     private String question;
     private String author;
