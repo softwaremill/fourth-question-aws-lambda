@@ -1,9 +1,6 @@
 package com.softwaremill.fourth_question.add;
 
-import com.amazonaws.auth.EnvironmentVariableCredentialsProvider;
-import com.amazonaws.regions.Regions;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.ConditionalCheckFailedException;
 import com.amazonaws.services.dynamodbv2.model.PutItemRequest;
@@ -12,11 +9,13 @@ import com.amazonaws.services.dynamodbv2.model.ScanResult;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.LambdaLogger;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
+import com.softwaremill.fourth_question.BaseLambdaHandler;
 import io.vavr.collection.HashMap;
 
 import java.util.UUID;
 
-public class AddFourthQuestionLambda implements RequestHandler<FourthQuestionJson, FourthQuestionResponse> {
+public class AddFourthQuestionLambda extends BaseLambdaHandler
+    implements RequestHandler<FourthQuestionJson, FourthQuestionResponse> {
 
     private AmazonDynamoDB dynamoDb;
     private LambdaLogger logger;
@@ -24,7 +23,8 @@ public class AddFourthQuestionLambda implements RequestHandler<FourthQuestionJso
     public FourthQuestionResponse handleRequest(FourthQuestionJson request, Context context) {
         logger = context.getLogger();
         logger.log("Trying to persist " + request);
-        initDynamoDbClient();
+        dynamoDb = getDatabaseConnection();
+
         persistData(request);
 
         FourthQuestionResponse response = new FourthQuestionResponse(String.valueOf(calculateQueueSize()));
@@ -42,13 +42,6 @@ public class AddFourthQuestionLambda implements RequestHandler<FourthQuestionJso
                 .withProjectionExpression("id")
         );
         return result.getItems().size();
-    }
-
-    private void initDynamoDbClient() {
-        dynamoDb = AmazonDynamoDBClientBuilder.standard()
-            .withRegion(Regions.EU_CENTRAL_1)
-            .withCredentials(new EnvironmentVariableCredentialsProvider())
-            .build();
     }
 
     private void persistData(FourthQuestionJson question) throws ConditionalCheckFailedException {

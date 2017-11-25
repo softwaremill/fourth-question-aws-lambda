@@ -1,9 +1,6 @@
 package com.softwaremill.fourth_question.get;
 
-import com.amazonaws.auth.EnvironmentVariableCredentialsProvider;
-import com.amazonaws.regions.Regions;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
 import com.amazonaws.services.dynamodbv2.model.AttributeAction;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.AttributeValueUpdate;
@@ -13,6 +10,7 @@ import com.amazonaws.services.dynamodbv2.model.UpdateItemRequest;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.LambdaLogger;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
+import com.softwaremill.fourth_question.BaseLambdaHandler;
 import com.softwaremill.fourth_question.add.FourthQuestionJson;
 import com.softwaremill.fourth_question.add.FourthQuestionResponse;
 import io.vavr.collection.HashMap;
@@ -20,15 +18,15 @@ import io.vavr.collection.List;
 
 import java.util.Map;
 
-public class GetFourthQuestionLambda implements RequestHandler<FourthQuestionJson, FourthQuestionResponse> {
+public class GetFourthQuestionLambda extends BaseLambdaHandler
+    implements RequestHandler<FourthQuestionJson, FourthQuestionResponse> {
 
     private AmazonDynamoDB dynamoDb;
     private LambdaLogger logger;
 
     public FourthQuestionResponse handleRequest(FourthQuestionJson request, Context context) {
+        dynamoDb = getDatabaseConnection();
         logger = context.getLogger();
-        initDynamoDbClient();
-
         return getOldestUnaskedQuestion();
     }
 
@@ -54,15 +52,8 @@ public class GetFourthQuestionLambda implements RequestHandler<FourthQuestionJso
         );
 
         return new FourthQuestionResponse(
-            resultRow.get("question").getS() + ", zadane przez " + resultRow.get("author").getS()
+            "*" + resultRow.get("question").getS() + "* (zadane przez " + resultRow.get("author").getS() +")"
         );
-    }
-
-    private void initDynamoDbClient() {
-        dynamoDb = AmazonDynamoDBClientBuilder.standard()
-            .withRegion(Regions.EU_CENTRAL_1)
-            .withCredentials(new EnvironmentVariableCredentialsProvider())
-            .build();
     }
 
 }
