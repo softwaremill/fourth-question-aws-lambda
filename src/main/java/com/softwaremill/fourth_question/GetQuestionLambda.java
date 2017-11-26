@@ -14,13 +14,23 @@ public class GetQuestionLambda extends BaseLambdaHandler
     public QuestionResponse handleRequest(QuestionRequestData request, Context context) {
         initializeDatabaseRepository();
         logger = context.getLogger();
-
-        Option<Question> question = repository.getOldestUnaskedQuestion();
-        question.forEach(q -> repository.markAsAsked(q));
-
-        QuestionResponse response = new QuestionResponse(question);
+        QuestionResponse response = new QuestionResponse(getQuestion());
         logger.log("Returning " + response);
         return response;
+    }
+
+    private Option<Question> getQuestion() {
+        Option<Question> question =  repository.getQuestionForToday();
+
+        question.forEach(q -> logger.log("Found question for today"));
+        return question.orElse(() -> {
+            Option<Question> newQuestion = repository.getOldestUnaskedQuestion();
+            newQuestion.forEach(q -> {
+                logger.log("Taking the oldest unasked question as question for today");
+                repository.markAsAsked(q);
+            });
+            return newQuestion;
+        });
     }
 
 }

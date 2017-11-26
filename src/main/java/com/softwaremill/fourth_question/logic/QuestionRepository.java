@@ -1,7 +1,6 @@
 package com.softwaremill.fourth_question.logic;
 
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
-import com.amazonaws.services.dynamodbv2.model.AttributeAction;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.AttributeValueUpdate;
 import com.amazonaws.services.dynamodbv2.model.ConditionalCheckFailedException;
@@ -17,12 +16,17 @@ import lombok.Value;
 import java.util.Map;
 import java.util.UUID;
 
+import static com.amazonaws.services.dynamodbv2.model.AttributeAction.PUT;
+import static java.lang.Boolean.FALSE;
+import static java.lang.Boolean.TRUE;
+
 @Value
 public class QuestionRepository {
 
     private static final String TABLE_NAME = "FourthQuestionsTable";
 
     private final AmazonDynamoDB dynamoDb;
+    private final NowProvider nowProvider;
 
     public void save(Question question) throws ConditionalCheckFailedException {
         this.dynamoDb
@@ -31,10 +35,38 @@ public class QuestionRepository {
                     "id", new AttributeValue(UUID.randomUUID().toString()),
                     "question", new AttributeValue(question.getQuestion()),
                     "author", new AttributeValue(question.getAuthor()),
-                    "timestamp", new AttributeValue(String.valueOf(System.currentTimeMillis())),
-                    "asked", new AttributeValue(Boolean.FALSE.toString())
+                    "added_timestamp", new AttributeValue(String.valueOf(System.currentTimeMillis())),
+                    "asked", new AttributeValue(FALSE.toString())
                 ).toJavaMap()
             ));
+    }
+
+    public Option<Question> getQuestionForToday() {
+
+        ScanResult result = dynamoDb.scan(
+            new ScanRequest(TABLE_NAME)
+                .withFilterExpression("asked = :asked and asked_date = :asked_date")
+                .withExpressionAttributeValues(
+                    HashMap.of(
+                        ":asked", new AttributeValue(TRUE.toString()),
+                        ":asked_date", new AttributeValue(nowProvider.todayAsString())
+                    ).toJavaMap()
+                )
+        );
+
+        if (result.getCount() == 0) {
+            return Option.none();
+        } else {
+            Map<String, AttributeValue> resultRow = result.getItems().get(0);
+
+            return Option.of(
+                new Question(
+                    resultRow.get("id").getS(),
+                    resultRow.get("question").getS(),
+                    resultRow.get("author").getS()
+                )
+            );
+        }
     }
 
     public Option<Question> getOldestUnaskedQuestion() {
@@ -42,7 +74,7 @@ public class QuestionRepository {
             new ScanRequest(TABLE_NAME)
                 .withFilterExpression("asked = :asked")
                 .withExpressionAttributeValues(
-                    HashMap.of(":asked", new AttributeValue(Boolean.FALSE.toString())).toJavaMap()
+                    HashMap.of(":asked", new AttributeValue(FALSE.toString())).toJavaMap()
                 )
         );
 
@@ -50,7 +82,7 @@ public class QuestionRepository {
             return Option.none();
         } else {
             Map<String, AttributeValue> resultRow = List.ofAll(result.getItems()).sortBy(i ->
-                Long.valueOf(i.get("timestamp").getS())
+                Long.valueOf(i.get("added_timestamp").getS())
             ).head();
 
             return Option.of(
@@ -67,8 +99,10 @@ public class QuestionRepository {
         dynamoDb.updateItem(new UpdateItemRequest(
                 TABLE_NAME,
                 HashMap.of("id", new AttributeValue(question.getId())).toJavaMap(),
-                HashMap.of("asked", new AttributeValueUpdate(
-                    new AttributeValue(Boolean.TRUE.toString()), AttributeAction.PUT)).toJavaMap()
+                HashMap.of(
+                    "asked", new AttributeValueUpdate(new AttributeValue(TRUE.toString()), PUT),
+                    "asked_date", new AttributeValueUpdate(new AttributeValue(nowProvider.todayAsString()), PUT)
+                ).toJavaMap()
             )
         );
     }
@@ -78,7 +112,7 @@ public class QuestionRepository {
             new ScanRequest(TABLE_NAME)
                 .withFilterExpression("asked = :asked")
                 .withExpressionAttributeValues(
-                    HashMap.of(":asked", new AttributeValue(Boolean.FALSE.toString())).toJavaMap()
+                    HashMap.of(":asked", new AttributeValue(FALSE.toString())).toJavaMap()
                 )
                 .withProjectionExpression("id")
         );
