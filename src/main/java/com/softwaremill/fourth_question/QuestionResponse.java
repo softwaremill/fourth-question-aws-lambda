@@ -16,7 +16,7 @@ public class QuestionResponse {
         if (question.isDefined()) {
             message = "*" + question.get().getQuestion() + "* (zadane przez " + question.get ().getAuthor() +")";
         } else {
-            message = "brak, a może *Ty* masz jakiś pomyysł?";
+            message = "brak, a może *Ty* masz jakiś pomysł?";
         }
     }
 
