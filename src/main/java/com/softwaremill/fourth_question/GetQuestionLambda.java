@@ -14,7 +14,7 @@ public class GetQuestionLambda extends BaseLambdaHandler
     public QuestionResponse handleRequest(QuestionRequestData request, Context context) {
         initializeDatabaseRepository();
         logger = context.getLogger();
-        QuestionResponse response = new QuestionResponse(getQuestion());
+        QuestionResponse response = new QuestionResponse(getQuestion(), repository.countNumberOfUnaskedQuestions());
         logger.log("Returning " + response);
         return response;
     }

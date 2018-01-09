@@ -9,12 +9,16 @@ import lombok.ToString;
 @ToString
 public class QuestionResponse {
 
-    private final String message;
+    private String message;
 
-    public QuestionResponse(Option<Question> question) {
+    public QuestionResponse(Option<Question> question, long numberOfRemainingQuestions) {
 
         if (question.isDefined()) {
-            message = "*" + question.get().getQuestion() + "* (zadane przez " + question.get ().getAuthor() +")";
+            message = "*" + question.get().getQuestion() + "* (zadane przez " + question.get().getAuthor() +")";
+
+            if (numberOfRemainingQuestions == 0) {
+                message += ". Psstt... w kolejce nie ma już żadnego pytania :)";
+            }
         } else {
             message = "brak, a może *Ty* masz jakiś pomysł?";
         }
